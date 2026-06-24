@@ -1,0 +1,48 @@
+Package: StatText
+Title: Minería de texto para ciencias sociales — StatSuite
+Version: 1.0.0
+Authors@R:
+    person("Manuel", "Spínola", email = "manuel.spinola@una.ac.cr",
+           role = c("cre", "aut"),
+           comment = c(ORCID = "0000-0002-7839-1908"))
+Description: App Shiny (golem) para análisis de texto libre, preguntas
+    abiertas de encuestas y encuestas cerradas Likert. Parte de StatSuite,
+    ecosistema de apps estadísticas para biología y ciencias sociales.
+    Desarrollada en el ICOMVIS, Universidad Nacional, Costa Rica.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Imports:
+    shiny,
+    bslib,
+    bsicons,
+    shinyjs,
+    golem,
+    config,
+    ggplot2,
+    dplyr,
+    tidyr,
+    DT,
+    readr,
+    readxl,
+    quanteda (>= 3.0.0),
+    quanteda.textstats,
+    quanteda.textplots,
+    topicmodels,
+    tidytext,
+    FactoMineR,
+    factoextra,
+    likert,
+    officer,
+    readtext,
+    stringr
+Suggests:
+    psych,
+    stm,
+    sentimentr,
+    udpipe,
+    text2vec,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
