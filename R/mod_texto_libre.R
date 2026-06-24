@@ -184,7 +184,7 @@ mod_texto_libre_ui <- function(id) {
               card_header(bs_icon("sliders", class = "me-1"), "Controles"),
               card_body(
                 sliderInput(ns("n_top_terms"), "Términos a mostrar:",
-                            min = 5, max = 50, value = 20, step = 5),
+                            min = 5, max = 50, value = 10, step = 5),
                 selectInput(
                   ns("freq_orden"),
                   "Ordenar por:",
@@ -267,10 +267,29 @@ mod_texto_libre_ui <- function(id) {
       nav_panel(
         title = tagList(bs_icon("diagram-3", class = "me-1"), "Coocurrencias"),
         card_body(
-          p(class = "small text-muted mb-3",
-            "Palabras que aparecen juntas frecuentemente en el mismo contexto",
-            " (ventana deslizante). Útil para identificar conceptos compuestos",
-            " y redes semánticas."),
+          div(
+            class = "alert mb-3",
+            style = paste0("background:", colores$fondo,
+                           "; border-left: 4px solid ", colores$secundario, ";"),
+            tags$b(
+              bs_icon("info-circle", class = "me-1",
+                      style = paste0("color:", colores$secundario)),
+              "¿Qué son las coocurrencias?"
+            ),
+            tags$p(class = "small text-muted mb-1 mt-1",
+              "Dos términos ", tags$strong("coocurren"), " cuando aparecen cerca",
+              " uno del otro dentro de una ventana de N tokens. Una ventana de 5",
+              " significa que se cuentan los pares de palabras que aparecen a 5",
+              " posiciones de distancia o menos, hacia adelante y hacia atrás."
+            ),
+            tags$p(class = "small text-muted mb-0",
+              "Útil para identificar ", tags$strong("conceptos compuestos"),
+              " (ej. 'salud pública'), ",
+              tags$strong("asociaciones temáticas"), " frecuentes y ",
+              tags$strong("redes semánticas"), " en el discurso.",
+              " A mayor frecuencia de coocurrencia, más fuerte es la asociación."
+            )
+          ),
           layout_columns(
             col_widths = c(4, 8),
             card(
@@ -310,14 +329,43 @@ mod_texto_libre_ui <- function(id) {
       nav_panel(
         title = tagList(bs_icon("tag", class = "me-1"), "Tópicos (LDA)"),
         card_body(
-          p(class = "small text-muted mb-3",
-            "Latent Dirichlet Allocation (LDA) descubre temas latentes en el corpus.",
-            " Cada tópico se representa por sus términos más probable."),
-          layout_columns(
-            col_widths = c(4, 8),
-            card(
-              card_header(bs_icon("sliders", class = "me-1"), "Controles"),
-              card_body(
+
+          # ── Descripción del modelo ──────────────────────
+          div(
+            class = "alert mb-3",
+            style = paste0("background:", colores$fondo,
+                           "; border-left: 4px solid ", colores$primario, ";"),
+            tags$b(
+              bs_icon("info-circle", class = "me-1",
+                      style = paste0("color:", colores$primario)),
+              "¿Qué es LDA?"
+            ),
+            tags$p(class = "small text-muted mb-1 mt-1",
+              tags$strong("Latent Dirichlet Allocation (LDA)"), " es un modelo",
+              " probabilístico que descubre ", tags$strong("temas latentes"),
+              " en un conjunto de textos. Asume que cada documento es una",
+              " mezcla de tópicos, y cada tópico es una distribución de palabras."
+            ),
+            tags$p(class = "small text-muted mb-0",
+              tags$strong("β (beta):"), " probabilidad de que una palabra pertenezca",
+              " a un tópico — las palabras con β más alto definen ese tópico.",
+              tags$br(),
+              tags$strong("γ (gamma):"), " probabilidad de que un documento/segmento",
+              " pertenezca a cada tópico.",
+              tags$br(),
+              tags$strong("K:"), " número de tópicos a descubrir (lo define el investigador).",
+              " Se recomienda explorar distintos valores de K y elegir el que",
+              " produzca tópicos más interpretables."
+            )
+          ),
+
+          # ── Controles en fila horizontal ────────────────
+          card(
+            class = "mb-3",
+            card_header(bs_icon("sliders", class = "me-1"), "Controles"),
+            card_body(
+              layout_columns(
+                col_widths = c(3, 3, 3, 3),
                 numericInput(ns("lda_k"), "Número de tópicos (K):",
                              value = 4, min = 2, max = 15, step = 1),
                 numericInput(ns("lda_iter"), "Iteraciones Gibbs:",
@@ -325,44 +373,49 @@ mod_texto_libre_ui <- function(id) {
                 sliderInput(ns("lda_top_terms"), "Términos por tópico:",
                             min = 5, max = 20, value = 10, step = 1),
                 div(
-                  class = "p-2 mt-2",
-                  style = paste0("background:", colores$fondo,
-                                 "; border-radius:6px; font-size:12px;"),
-                  bs_icon("info-circle", class = "me-1",
-                          style = paste0("color:", colores$primario)),
-                  "LDA requiere ≥ 2 documentos. Para texto continuo, se divide",
-                  " automáticamente en segmentos de 50 tokens."
-                ),
-                tags$hr(),
-                actionButton(
-                  ns("ajustar_lda"),
-                  label = tagList(bs_icon("play-fill", class = "me-1"),
-                                  "Ajustar LDA"),
-                  class = "btn btn-primary w-100"
-                ),
-                div(class = "mt-2", uiOutput(ns("estado_lda_ui")))
-              )
-            ),
-            div(
-              card(
-                class = "mb-3",
-                card_header(
-                  bs_icon("bar-chart-fill", class = "me-1"),
-                  "Términos por tópico (β)"
-                ),
-                card_body(
-                  plotOutput(ns("plot_lda_beta"), height = "420px")
+                  class = "d-flex flex-column justify-content-end",
+                  actionButton(
+                    ns("ajustar_lda"),
+                    label = tagList(bs_icon("play-fill", class = "me-1"),
+                                    "Ajustar LDA"),
+                    class = "btn btn-primary w-100"
+                  ),
+                  div(class = "mt-2", uiOutput(ns("estado_lda_ui")))
                 )
+              ),
+              div(
+                class = "p-2 mt-2",
+                style = paste0("background:", colores$fondo,
+                               "; border-radius:6px; font-size:12px;"),
+                bs_icon("info-circle", class = "me-1",
+                        style = paste0("color:", colores$primario)),
+                "LDA requiere ≥ K documentos/segmentos. Para texto continuo,",
+                " se divide automáticamente en segmentos de tamaño dinámico."
               )
             )
           ),
-          div(class = "mt-3",
-            card(
-              card_header(bs_icon("table", class = "me-1"),
-                          "Distribución de tópicos por documento (γ)"),
-              card_body(
-                DTOutput(ns("tabla_lda_gamma"))
-              )
+
+          # ── Gráfico β — ancho completo ──────────────────
+          card(
+            class = "mb-3",
+            card_header(
+              bs_icon("bar-chart-fill", class = "me-1"),
+              "Términos por tópico (β)"
+            ),
+            card_body(
+              uiOutput(ns("plot_lda_beta_ui"))
+            )
+          ),
+
+          # ── Tabla γ — ancho completo ────────────────────
+          card(
+            card_header(bs_icon("table", class = "me-1"),
+                        "Tópico dominante por segmento (γ)"),
+            card_body(
+              p(class = "small text-muted mb-2",
+                "Se muestra el tópico con mayor probabilidad (γ) en cada",
+                " documento/segmento. γ = probabilidad de pertenencia al tópico."),
+              DTOutput(ns("tabla_lda_gamma"))
             )
           )
         )
@@ -704,23 +757,27 @@ mod_texto_libre_server <- function(id) {
         tryCatch({
           dfm <- dfm_proc()
 
-          # Si hay un solo documento, dividir en segmentos
-          if (ndoc(dfm) < 2) {
-            toks_seg <- quanteda::tokens_chunk(corpus_proc(), size = 50)
-            dfm      <- construir_dfm(toks_seg,
-                                      stem = input$aplicar_stemming)
+          # Paso 1: si hay menos documentos que K, segmentar el corpus
+          if (ndoc(dfm) < max(input$lda_k, 2)) {
+            n_tokens <- sum(quanteda::ntoken(corpus_proc()))
+            # Tamaño de chunk: al menos 10 tokens; apunta a lda_k * 3 segmentos
+            chunk_sz <- max(10L, as.integer(n_tokens / (input$lda_k * 3)))
+            toks_seg <- quanteda::tokens_chunk(corpus_proc(), size = chunk_sz)
+            dfm      <- construir_dfm(toks_seg, stem = input$aplicar_stemming)
           }
 
-          # Eliminar features con frecuencia 0 y documentos vacíos
-          dfm <- quanteda::dfm_trim(dfm, min_termfreq = 1)
-          keep <- which(rowSums(dfm) > 0)
-          dfm  <- dfm[keep, ]
+          # Paso 2: recortar features con freq 0 y eliminar filas vacías
+          dfm  <- quanteda::dfm_trim(dfm, min_termfreq = 1)
+          # rowSums sobre la matriz completa evita el error de array de 1 dimensión
+          sumas_filas <- Matrix::rowSums(quanteda::as.dfm(dfm))
+          dfm  <- dfm[sumas_filas > 0, ]
 
+          # Paso 3: verificar que siga habiendo suficientes filas y columnas
           validate(
-            need(ndoc(dfm) >= input$lda_k,
+            need(ndoc(dfm) >= max(input$lda_k, 2) && nfeat(dfm) >= 2,
                  paste0(
                    "Se necesitan al menos K = ", input$lda_k,
-                   " documentos/segmentos. Reducí K o añadí más texto."
+                   " segmentos con ≥ 2 términos. Reducí K o añadí más texto."
                  ))
           )
 
@@ -762,6 +819,15 @@ mod_texto_libre_server <- function(id) {
       }
     })
 
+    # renderUI dinámico: altura del gráfico β crece con K (filas de facetas)
+    output$plot_lda_beta_ui <- renderUI({
+      req(modelo_lda())
+      k        <- input$lda_k
+      n_rows   <- ceiling(k / 3)           # min(k, 3) columnas en facet_wrap
+      altura   <- max(320L, n_rows * 220L) # ~220px por fila de facetas
+      plotOutput(ns("plot_lda_beta"), height = paste0(altura, "px"))
+    })
+
     output$plot_lda_beta <- renderPlot({
       req(modelo_lda())
       lda <- modelo_lda()
@@ -791,24 +857,23 @@ mod_texto_libre_server <- function(id) {
     output$tabla_lda_gamma <- renderDT({
       req(modelo_lda())
       gamma_df <- tidytext::tidy(modelo_lda(), matrix = "gamma") |>
-        dplyr::mutate(
-          topic = paste0("T", topic),
-          gamma = round(gamma, 3)
+        dplyr::group_by(document) |>
+        dplyr::slice_max(gamma, n = 1, with_ties = FALSE) |>
+        dplyr::ungroup() |>
+        dplyr::transmute(
+          Segmento         = document,
+          `Tópico dominante` = paste0("Tópico ", topic),
+          `γ máximo`       = round(gamma, 3)
         ) |>
-        tidyr::pivot_wider(names_from = topic, values_from = gamma,
-                           names_prefix = "Tópico_")
+        dplyr::arrange(Segmento)
 
       datatable(
         gamma_df,
         options  = list(pageLength = 10, scrollX = TRUE, dom = "tp"),
         rownames = FALSE,
-        class    = "table-sm table-condensed",
-        colnames = c("Documento", paste0("Tópico ", seq_len(input$lda_k)))
+        class    = "table-sm table-condensed"
       ) |>
-        DT::formatRound(
-          columns = paste0("Tópico_T", seq_len(input$lda_k)),
-          digits  = 3
-        )
+        DT::formatRound(columns = "γ máximo", digits = 3)
     })
 
     # ── Código R ──────────────────────────────────────────
