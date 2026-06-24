@@ -21,7 +21,7 @@ app_ui <- function() {
     footer = div(
       class = "text-center text-muted small py-2",
       style = paste0("border-top: 1px solid ", colores$borde, ";"),
-      "Manuel Spínola · ICOMVIS · Universidad Nacional · Costa Rica"
+      "Manuel Spínola · ICOMVIS · Universidad Nacional · Costa Rica - Jimena Spínola Auscarriaga · Durazno · Uruguay"
     ),
 
     # ── Módulo 1: Texto libre ─────────────────────────────
