@@ -247,33 +247,43 @@ mod_texto_libre_ui <- function(id) {
             )
           ),
           layout_columns(
-            col_widths = c(4, 8),
-            card(
-              card_header(bs_icon("sliders", class = "me-1"), "Controles"),
-              card_body(
-                sliderInput(ns("n_top_terms"), "Términos a mostrar:",
-                            min = 5, max = 50, value = 10, step = 5),
-                selectInput(
-                  ns("freq_tipo"),
-                  "Tipo de gráfico:",
-                  choices = c(
-                    "Barras"    = "barras",
-                    "Lollipop"  = "lollipop"
-                  )
-                ),
-                selectInput(
-                  ns("freq_orden"),
-                  "Ordenar por:",
-                  choices = c(
-                    "Frecuencia (descendente)" = "desc",
-                    "Frecuencia (ascendente)"  = "asc",
-                    "Alfabético"               = "alfa"
-                  )
-                ),
-                tags$hr(),
-                downloadButton(ns("descarga_freq"),
-                               "Descargar tabla",
-                               class = "btn-sm btn-outline-primary w-100")
+            col_widths = c(3, 9),
+            div(
+              card(
+                card_header(bs_icon("sliders", class = "me-1"), "Controles"),
+                card_body(
+                  sliderInput(ns("n_top_terms"), "Términos a mostrar:",
+                              min = 5, max = 50, value = 10, step = 5),
+                  selectInput(
+                    ns("freq_tipo"),
+                    "Tipo de gráfico:",
+                    choices = c(
+                      "Barras"    = "barras",
+                      "Lollipop"  = "lollipop"
+                    )
+                  ),
+                  selectInput(
+                    ns("freq_orden"),
+                    "Ordenar por:",
+                    choices = c(
+                      "Frecuencia (descendente)" = "desc",
+                      "Frecuencia (ascendente)"  = "asc",
+                      "Alfabético"               = "alfa"
+                    )
+                  ),
+                  tags$hr(),
+                  downloadButton(ns("descarga_freq"),
+                                 "Descargar tabla",
+                                 class = "btn-sm btn-outline-primary w-100")
+                )
+              ),
+              card(
+                class = "mt-3",
+                card_header(bs_icon("lightbulb", class = "me-1"), "Interpretación"),
+                card_body(
+                  style = "white-space: normal; word-wrap: break-word;",
+                  uiOutput(ns("exp_freq_ui"))
+                )
               )
             ),
             div(
@@ -288,8 +298,7 @@ mod_texto_libre_ui <- function(id) {
                             "Términos más frecuentes"),
                 card_body(uiOutput(ns("plot_freq_ui")))
               )
-            ),
-            uiOutput(ns("exp_freq_ui"))
+            )
           )
         )
       ), # /PESTAÑA 2
@@ -357,6 +366,7 @@ mod_texto_libre_ui <- function(id) {
 
       # ══════════════════════════════════════════════════
       # PESTAÑA 4: N-gramas
+      # ══════════════════════════════════════════════════
       nav_panel(
         title = tagList(bs_icon("text-paragraph", class = "me-1"), "N-gramas"),
         card_body(
@@ -382,28 +392,38 @@ mod_texto_libre_ui <- function(id) {
             )
           ),
           layout_columns(
-            col_widths = c(4, 8),
-            card(
-              card_header(bs_icon("sliders", class = "me-1"), "Controles"),
-              card_body(
-                radioButtons(
-                  ns("ngrama_n"),
-                  "Tipo:",
-                  choices = c(
-                    "Bigramas (2 palabras)"  = "2",
-                    "Trigramas (3 palabras)" = "3"
+            col_widths = c(3, 9),
+            div(
+              card(
+                card_header(bs_icon("sliders", class = "me-1"), "Controles"),
+                card_body(
+                  radioButtons(
+                    ns("ngrama_n"),
+                    "Tipo:",
+                    choices = c(
+                      "Bigramas (2 palabras)"  = "2",
+                      "Trigramas (3 palabras)" = "3"
+                    ),
+                    selected = "2"
                   ),
-                  selected = "2"
-                ),
-                sliderInput(ns("ngrama_min_freq"), "Frecuencia mínima:",
-                            min = 1, max = 20, value = 2, step = 1),
-                sliderInput(ns("ngrama_top_n"), "N-gramas a mostrar:",
-                            min = 5, max = 30, value = 15, step = 5),
-                tags$hr(),
-                actionButton(ns("calcular_ngramas"),
-                             tagList(bs_icon("play-fill", class = "me-1"),
-                                     "Calcular"),
-                             class = "btn btn-primary w-100")
+                  sliderInput(ns("ngrama_min_freq"), "Frecuencia mínima:",
+                              min = 1, max = 20, value = 2, step = 1),
+                  sliderInput(ns("ngrama_top_n"), "N-gramas a mostrar:",
+                              min = 5, max = 30, value = 15, step = 5),
+                  tags$hr(),
+                  actionButton(ns("calcular_ngramas"),
+                               tagList(bs_icon("play-fill", class = "me-1"),
+                                       "Calcular"),
+                               class = "btn btn-primary w-100")
+                )
+              ),
+              card(
+                class = "mt-3",
+                card_header(bs_icon("lightbulb", class = "me-1"), "Interpretación"),
+                card_body(
+                  style = "white-space: normal; word-wrap: break-word;",
+                  uiOutput(ns("exp_ngramas_ui"))
+                )
               )
             ),
             div(
@@ -417,14 +437,14 @@ mod_texto_libre_ui <- function(id) {
                             "N-gramas más frecuentes"),
                 card_body(uiOutput(ns("plot_ngramas_ui")))
               )
-            ),
-            uiOutput(ns("exp_ngramas_ui"))
+            )
           )
         )
       ), # /PESTAÑA 4
 
       # ══════════════════════════════════════════════════
       # PESTAÑA 5: Coocurrencias
+      # ══════════════════════════════════════════════════
       nav_panel(
         title = tagList(bs_icon("diagram-3", class = "me-1"), "Coocurrencias"),
         card_body(
@@ -439,34 +459,39 @@ mod_texto_libre_ui <- function(id) {
             ),
             tags$p(class = "small text-muted mb-1 mt-1",
               "Dos términos ", tags$strong("coocurren"), " cuando aparecen cerca",
-              " uno del otro dentro de una ventana de N tokens. Una ventana de 5",
-              " significa que se cuentan los pares de palabras que aparecen a 5",
-              " posiciones de distancia o menos, hacia adelante y hacia atrás."
+              " uno del otro dentro de una ventana de N tokens."
             ),
             tags$p(class = "small text-muted mb-0",
-              "Útil para identificar ", tags$strong("conceptos compuestos"),
-              " (ej. 'salud pública'), ",
-              tags$strong("asociaciones temáticas"), " frecuentes y ",
-              tags$strong("redes semánticas"), " en el discurso.",
-              " A mayor frecuencia de coocurrencia, más fuerte es la asociación."
+              "Útil para identificar ", tags$strong("asociaciones temáticas"),
+              " y ", tags$strong("redes semánticas"), " en el discurso."
             )
           ),
           layout_columns(
-            col_widths = c(4, 8),
-            card(
-              card_header(bs_icon("sliders", class = "me-1"), "Controles"),
-              card_body(
-                sliderInput(ns("cooc_ventana"), "Ventana de contexto (tokens):",
-                            min = 2, max = 10, value = 5, step = 1),
-                sliderInput(ns("cooc_min_count"), "Frecuencia mínima de par:",
-                            min = 1, max = 20, value = 2, step = 1),
-                sliderInput(ns("cooc_top_n"), "Pares a visualizar:",
-                            min = 10, max = 50, value = 20, step = 5),
-                tags$hr(),
-                actionButton(ns("calcular_cooc"),
-                             tagList(bs_icon("play-fill", class = "me-1"),
-                                     "Calcular"),
-                             class = "btn btn-primary btn-sm w-100 mt-2")
+            col_widths = c(3, 9),
+            div(
+              card(
+                card_header(bs_icon("sliders", class = "me-1"), "Controles"),
+                card_body(
+                  sliderInput(ns("cooc_ventana"), "Ventana de contexto (tokens):",
+                              min = 2, max = 10, value = 5, step = 1),
+                  sliderInput(ns("cooc_min_count"), "Frecuencia mínima de par:",
+                              min = 1, max = 20, value = 2, step = 1),
+                  sliderInput(ns("cooc_top_n"), "Pares a visualizar:",
+                              min = 10, max = 50, value = 20, step = 5),
+                  tags$hr(),
+                  actionButton(ns("calcular_cooc"),
+                               tagList(bs_icon("play-fill", class = "me-1"),
+                                       "Calcular"),
+                               class = "btn btn-primary btn-sm w-100 mt-2")
+                )
+              ),
+              card(
+                class = "mt-3",
+                card_header(bs_icon("lightbulb", class = "me-1"), "Interpretación"),
+                card_body(
+                  style = "white-space: normal; word-wrap: break-word;",
+                  uiOutput(ns("exp_cooc_ui"))
+                )
               )
             ),
             div(
@@ -481,8 +506,7 @@ mod_texto_libre_ui <- function(id) {
                             "Pares de términos más coocurrentes"),
                 card_body(plotOutput(ns("plot_cooc"), height = "520px"))
               )
-            ),
-            uiOutput(ns("exp_cooc_ui"))
+            )
           )
         )
       ), # /PESTAÑA 5
@@ -512,22 +536,32 @@ mod_texto_libre_ui <- function(id) {
             )
           ),
           layout_columns(
-            col_widths = c(4, 8),
-            card(
-              card_header(bs_icon("sliders", class = "me-1"), "Controles"),
-              card_body(
-                textInput(
-                  ns("kwic_patron"),
-                  "Palabra o frase a buscar:",
-                  placeholder = "ej. participación"
-                ),
-                sliderInput(ns("kwic_ventana"), "Ventana de contexto (tokens):",
-                            min = 2, max = 15, value = 5, step = 1),
-                tags$hr(),
-                actionButton(ns("buscar_kwic"),
-                             tagList(bs_icon("search", class = "me-1"),
-                                     "Buscar"),
-                             class = "btn btn-primary w-100")
+            col_widths = c(3, 9),
+            div(
+              card(
+                card_header(bs_icon("sliders", class = "me-1"), "Controles"),
+                card_body(
+                  textInput(
+                    ns("kwic_patron"),
+                    "Palabra o frase a buscar:",
+                    placeholder = "ej. participación"
+                  ),
+                  sliderInput(ns("kwic_ventana"), "Ventana de contexto (tokens):",
+                              min = 2, max = 15, value = 5, step = 1),
+                  tags$hr(),
+                  actionButton(ns("buscar_kwic"),
+                               tagList(bs_icon("search", class = "me-1"),
+                                       "Buscar"),
+                               class = "btn btn-primary w-100")
+                )
+              ),
+              card(
+                class = "mt-3",
+                card_header(bs_icon("lightbulb", class = "me-1"), "Interpretación"),
+                card_body(
+                  style = "white-space: normal; word-wrap: break-word;",
+                  uiOutput(ns("exp_kwic_ui"))
+                )
               )
             ),
             div(
@@ -538,8 +572,7 @@ mod_texto_libre_ui <- function(id) {
                   uiOutput(ns("kwic_info_ui")),
                   DTOutput(ns("tabla_kwic"))
                 )
-              ),
-              uiOutput(ns("exp_kwic_ui"))
+              )
             )
           )
         )
@@ -578,33 +611,43 @@ mod_texto_libre_ui <- function(id) {
             )
           ),
           layout_columns(
-            col_widths = c(4, 8),
-            card(
-              card_header(bs_icon("sliders", class = "me-1"), "Controles"),
-              card_body(
-                numericInput(ns("lda_k"), "Número de tópicos (K):",
-                             value = 4, min = 2, max = 15, step = 1),
-                numericInput(ns("lda_iter"), "Iteraciones Gibbs:",
-                             value = 1000, min = 200, max = 5000, step = 200),
-                sliderInput(ns("lda_top_terms"), "Términos por tópico:",
-                            min = 5, max = 20, value = 10, step = 1),
-                div(
-                  class = "p-2 mb-3",
-                  style = paste0("background:", colores$fondo,
-                                 "; border-radius:6px; font-size:12px;"),
-                  bs_icon("info-circle", class = "me-1",
-                          style = paste0("color:", colores$primario)),
-                  "LDA requiere ≥ K documentos/segmentos. Para texto continuo,",
-                  " se divide automáticamente en segmentos de tamaño dinámico."
-                ),
-                tags$hr(),
-                actionButton(
-                  ns("ajustar_lda"),
-                  label = tagList(bs_icon("play-fill", class = "me-1"),
-                                  "Ajustar LDA"),
-                  class = "btn btn-primary w-100"
-                ),
-                div(class = "mt-2", uiOutput(ns("estado_lda_ui")))
+            col_widths = c(3, 9),
+            div(
+              card(
+                card_header(bs_icon("sliders", class = "me-1"), "Controles"),
+                card_body(
+                  numericInput(ns("lda_k"), "Número de tópicos (K):",
+                               value = 4, min = 2, max = 15, step = 1),
+                  numericInput(ns("lda_iter"), "Iteraciones Gibbs:",
+                               value = 1000, min = 200, max = 5000, step = 200),
+                  sliderInput(ns("lda_top_terms"), "Términos por tópico:",
+                              min = 5, max = 20, value = 10, step = 1),
+                  div(
+                    class = "p-2 mb-3",
+                    style = paste0("background:", colores$fondo,
+                                   "; border-radius:6px; font-size:12px;"),
+                    bs_icon("info-circle", class = "me-1",
+                            style = paste0("color:", colores$primario)),
+                    "LDA requiere ≥ K documentos/segmentos. Para texto continuo,",
+                    " se divide automáticamente en segmentos de tamaño dinámico."
+                  ),
+                  tags$hr(),
+                  actionButton(
+                    ns("ajustar_lda"),
+                    label = tagList(bs_icon("play-fill", class = "me-1"),
+                                    "Ajustar LDA"),
+                    class = "btn btn-primary w-100"
+                  ),
+                  div(class = "mt-2", uiOutput(ns("estado_lda_ui")))
+                )
+              ),
+              card(
+                class = "mt-3",
+                card_header(bs_icon("lightbulb", class = "me-1"), "Interpretación"),
+                card_body(
+                  style = "white-space: normal; word-wrap: break-word;",
+                  uiOutput(ns("exp_lda_ui"))
+                )
               )
             ),
             div(
@@ -622,8 +665,7 @@ mod_texto_libre_ui <- function(id) {
                     "Tópico con mayor probabilidad (γ) por documento/segmento."),
                   DTOutput(ns("tabla_lda_gamma"))
                 )
-              ),
-              uiOutput(ns("exp_lda_ui"))
+              )
             )
           )
         )
@@ -1472,14 +1514,7 @@ mod_texto_libre_server <- function(id) {
       req(freq_df())
       df  <- freq_df()
       top <- df[which.max(df$frequency), ]
-      div(
-        class = "mt-3 p-3 small",
-        style = paste0("background:", colores$fondo,
-                       "; border-left:4px solid ", colores$acento,
-                       "; border-radius:4px;"),
-        bs_icon("lightbulb", class = "me-1",
-                style = paste0("color:", colores$acento)),
-        tags$b("Interpretación: "),
+      tagList(
         "La palabra más frecuente fue ",
         tags$strong(top$feature),
         paste0(" con ", top$frequency, " ocurrencias. "),
@@ -1489,54 +1524,26 @@ mod_texto_libre_server <- function(id) {
 
     output$exp_ngramas_ui <- renderUI({
       req(ngramas_df())
-      df  <- ngramas_df()
-      top <- df[1, ]
+      df   <- ngramas_df()
+      top  <- df[1, ]
       tipo <- if (input$ngrama_n == "2") "bigrama" else "trigrama"
-      div(
-        class = "mt-3 p-3 small",
-        style = paste0("background:", colores$fondo,
-                       "; border-left:4px solid ", colores$acento,
-                       "; border-radius:4px;"),
-        bs_icon("lightbulb", class = "me-1",
-                style = paste0("color:", colores$acento)),
-        tags$b("Interpretación: "),
-        paste0("El ", tipo, " más frecuente fue '", top$feature,
-               "' con ", top$frequency, " ocurrencias.")
-      )
+      p(paste0("El ", tipo, " más frecuente fue '", top$feature,
+               "' con ", top$frequency, " ocurrencias."))
     })
 
     output$exp_cooc_ui <- renderUI({
       req(cooc_df())
       df  <- cooc_df()
       top <- df[1, ]
-      div(
-        class = "mt-3 p-3 small",
-        style = paste0("background:", colores$fondo,
-                       "; border-left:4px solid ", colores$acento,
-                       "; border-radius:4px;"),
-        bs_icon("lightbulb", class = "me-1",
-                style = paste0("color:", colores$acento)),
-        tags$b("Interpretación: "),
-        paste0("El par de términos más frecuente fue '",
-               top$term1, " — ", top$term2,
-               "' con ", top$count, " coocurrencias.")
-      )
+      p(paste0("El par más frecuente fue '", top$term1, " — ", top$term2,
+               "' con ", top$count, " coocurrencias."))
     })
 
     output$exp_kwic_ui <- renderUI({
       req(kwic_rv())
       n <- nrow(kwic_rv())
-      div(
-        class = "mt-3 p-3 small",
-        style = paste0("background:", colores$fondo,
-                       "; border-left:4px solid ", colores$acento,
-                       "; border-radius:4px;"),
-        bs_icon("lightbulb", class = "me-1",
-                style = paste0("color:", colores$acento)),
-        tags$b("Interpretación: "),
-        paste0("Se encontraron ", n, " ocurrencia(s) del término '",
-               input$kwic_patron, "' en el corpus.")
-      )
+      p(paste0("Se encontraron ", n, " ocurrencia(s) del término '",
+               input$kwic_patron, "' en el corpus."))
     })
 
     output$exp_lda_ui <- renderUI({
@@ -1548,19 +1555,9 @@ mod_texto_libre_server <- function(id) {
       topic_dom <- gamma_df |>
         dplyr::count(topic) |>
         dplyr::slice_max(n, n = 1, with_ties = FALSE)
-      div(
-        class = "mt-3 p-3 small",
-        style = paste0("background:", colores$fondo,
-                       "; border-left:4px solid ", colores$acento,
-                       "; border-radius:4px;"),
-        bs_icon("lightbulb", class = "me-1",
-                style = paste0("color:", colores$acento)),
-        tags$b("Interpretación: "),
-        paste0("Se identificaron ", input$lda_k, " tópicos. ",
-               "El tópico dominante en la mayoría de segmentos fue ",
-               "Tópico ", topic_dom$topic, " (",
-               topic_dom$n, " segmentos).")
-      )
+      p(paste0("Se identificaron ", input$lda_k, " tópicos. ",
+               "El tópico dominante en la mayoría de segmentos fue Tópico ",
+               topic_dom$topic, " (", topic_dom$n, " segmentos)."))
     })
 
     # ── Código R ──────────────────────────────────────────

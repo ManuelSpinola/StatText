@@ -69,54 +69,82 @@ mod_enc_abiertas_ui <- function(id) {
             col_widths = c(5, 7),
 
             div(
-              tags$b(bs_icon("database", class = "me-1"), "Fuente de respuestas"),
-              p(class = "small text-muted mt-1 mb-3",
-                "Cargá un CSV/XLSX con una columna de respuestas,",
-                " o usá el ejemplo integrado."),
 
-              radioButtons(
-                ns("fuente_abiertas"),
-                label = NULL,
-                choices = c(
-                  "Subir archivo (.csv, .xlsx)"     = "archivo",
-                  "Ejemplo: encuesta barrial"       = "ejemplo"
+              # ── Card: Fuente de respuestas ─────────────
+              card(
+                card_header(
+                  bs_icon("database", class = "me-1"), "Fuente de respuestas"
                 ),
-                selected = "ejemplo"
-              ),
+                card_body(
+                  tags$p(class = "small fw-semibold text-muted mb-1",
+                         bs_icon("bookmark", class = "me-1"), "Ejemplo"),
+                  radioButtons(
+                    ns("fuente_abiertas"),
+                    label = NULL,
+                    choices = c("Ejemplo: encuesta barrial" = "ejemplo"),
+                    selected = "ejemplo"
+                  ),
 
-              conditionalPanel(
-                condition = paste0("input['", ns("fuente_abiertas"), "'] == 'archivo'"),
-                fileInput(
-                  ns("archivo_abiertas"),
-                  label       = NULL,
-                  accept      = c(".csv", ".xlsx"),
-                  buttonLabel = tagList(
-                    bs_icon("folder2-open", class = "me-1"), "Examinar…"),
-                  placeholder = "Sin archivo seleccionado"
+                  tags$hr(class = "my-2"),
+                  tags$p(class = "small fw-semibold text-muted mb-1",
+                         bs_icon("upload", class = "me-1"), "Subir archivo"),
+                  radioButtons(
+                    ns("fuente_archivo_ab"),
+                    label = NULL,
+                    choices = c("Subir archivo (.csv, .xlsx)" = "archivo"),
+                    selected = character(0)
+                  ),
+                  conditionalPanel(
+                    condition = paste0("output['", ns("fuente_ab_es_archivo"), "']"),
+                    fileInput(
+                      ns("archivo_abiertas"),
+                      label       = NULL,
+                      accept      = c(".csv", ".xlsx"),
+                      buttonLabel = tagList(
+                        bs_icon("folder2-open", class = "me-1"), "Examinar…"),
+                      placeholder = "Sin archivo seleccionado"
+                    )
+                  ),
+
+                  uiOutput(ns("sel_columnas_ui"))
                 )
               ),
 
-              uiOutput(ns("sel_columnas_ui")),
-
-              tags$hr(),
-              tags$b(bs_icon("sliders", class = "me-1"), "Preprocesamiento"),
-              p(class = "small text-muted mt-1 mb-2",
-                "Ajustado para texto corto y coloquial."),
-              checkboxInput(ns("norm_puntuacion"),
-                            "Normalizar puntuación", TRUE),
-              checkboxInput(ns("norm_numeros"),
-                            "Remover números", TRUE),
-              checkboxInput(ns("unificar_terminos"),
-                            "Unificar variantes (stemming leve)", FALSE),
-              numericInput(ns("min_nchar_ab"), "Longitud mínima:",
-                           value = 3, min = 2, max = 6, step = 1),
-
-              tags$hr(),
-              actionButton(
-                ns("procesar_ab"),
-                label  = tagList(bs_icon("play-fill", class = "me-1"),
-                                 "Procesar respuestas"),
-                class  = "btn btn-primary w-100"
+              # ── Card: Preprocesamiento ─────────────────
+              card(
+                class = "mt-3",
+                card_header(
+                  bs_icon("sliders", class = "me-1"), "Preprocesamiento"
+                ),
+                card_body(
+                  p(class = "small text-muted mb-2",
+                    "Ajustado para texto corto y coloquial."),
+                  checkboxInput(ns("norm_puntuacion"),
+                                "Normalizar puntuación", TRUE),
+                  checkboxInput(ns("norm_numeros"),
+                                "Remover números", TRUE),
+                  checkboxInput(ns("unificar_terminos"),
+                                "Unificar variantes (stemming leve)", FALSE),
+                  div(
+                    class = "p-2 mb-2",
+                    style = paste0("background:", colores$fondo,
+                                   "; border-radius:6px; font-size:12px;"),
+                    bs_icon("info-circle", class = "me-1",
+                            style = paste0("color:", colores$primario)),
+                    tags$strong("Stemming leve:"),
+                    " agrupa variantes de una misma palabra sin reducirla",
+                    " tanto como el stemming completo. Útil para texto coloquial."
+                  ),
+                  numericInput(ns("min_nchar_ab"), "Longitud mínima:",
+                               value = 3, min = 2, max = 6, step = 1),
+                  tags$hr(),
+                  actionButton(
+                    ns("procesar_ab"),
+                    label  = tagList(bs_icon("play-fill", class = "me-1"),
+                                     "Procesar respuestas"),
+                    class  = "btn btn-primary w-100"
+                  )
+                )
               )
             ),
 
@@ -280,7 +308,7 @@ mod_enc_abiertas_server <- function(id) {
 
     # ── Datos crudos ─────────────────────────────────────
     datos_ab <- reactive({
-      if (input$fuente_abiertas == "ejemplo") {
+      if (fuente_ab_activa() == "ejemplo") {
         return(EJEMPLO_ABIERTAS)
       }
       req(input$archivo_abiertas)
@@ -374,7 +402,7 @@ mod_enc_abiertas_server <- function(id) {
 
     # Inicializar con ejemplo automáticamente
     observe({
-      req(input$fuente_abiertas == "ejemplo")
+      req(fuente_ab_activa() == "ejemplo")
       if (is.null(dfm_ab())) {
         shinyjs::click(ns("procesar_ab"))
       }
@@ -397,6 +425,35 @@ mod_enc_abiertas_server <- function(id) {
         ndoc(dfm), " respuestas · ",
         nfeat(dfm), " términos únicos"
       )
+    })
+
+    # Fuente activa archivo
+    output$fuente_ab_es_archivo <- reactive({
+      !is.null(input$fuente_archivo_ab) &&
+        length(input$fuente_archivo_ab) > 0 &&
+        input$fuente_archivo_ab == "archivo"
+    })
+    outputOptions(output, "fuente_ab_es_archivo", suspendWhenHidden = FALSE)
+
+    # Deselección mutua
+    observeEvent(input$fuente_abiertas, {
+      req(input$fuente_abiertas)
+      updateRadioButtons(session, "fuente_archivo_ab", selected = character(0))
+    })
+    observeEvent(input$fuente_archivo_ab, {
+      req(input$fuente_archivo_ab)
+      updateRadioButtons(session, "fuente_abiertas", selected = character(0))
+    })
+
+    # Fuente activa para el server
+    fuente_ab_activa <- reactive({
+      if (!is.null(input$fuente_archivo_ab) &&
+          length(input$fuente_archivo_ab) > 0 &&
+          input$fuente_archivo_ab == "archivo") {
+        "archivo"
+      } else {
+        "ejemplo"
+      }
     })
 
     output$preview_ab <- renderDT({
