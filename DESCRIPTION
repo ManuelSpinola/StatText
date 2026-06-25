@@ -28,6 +28,7 @@ Imports:
     DT,
     readr,
     readxl,
+    striprtf,
     quanteda (>= 3.0.0),
     quanteda.textstats,
     quanteda.textplots,
