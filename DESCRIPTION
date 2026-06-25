@@ -39,10 +39,11 @@ Imports:
     likert,
     officer,
     readtext,
-    stringr
+    stringr,
+    stm,
+    scales
 Suggests:
     psych,
-    stm,
     sentimentr,
     udpipe,
     text2vec,
