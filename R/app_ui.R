@@ -65,23 +65,11 @@ app_ui <- function() {
       )
     ),
 
-    # ── Módulo 5: STM (próximamente) ─────────────────────
+    # ── Módulo 5: STM ────────────────────────────────────
     nav_panel(
       title = "STM",
       icon  = bs_icon("diagram-3"),
-      proximamente_ui(
-        icono     = "diagram-3",
-        titulo    = "Structural Topic Model (STM)",
-        subtitulo = paste0(
-          "Extensión del LDA que permite incorporar covariables del documento ",
-          "para modelar cómo los tópicos varían según características de autor, ",
-          "fecha, región u otras variables contextuales. Especialmente útil para ",
-          "corpus de ciencias sociales donde el contexto importa. ",
-          "Paquete: stm (Roberts et al. 2019)."
-        ),
-        paquete  = "stm — Roberts et al. (2019)",
-        datasets = "Corpus de noticias · tweets · actas parlamentarias"
-      )
+      mod_stm_ui("stm")
     ),
 
     nav_spacer(),
