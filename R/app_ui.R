@@ -19,8 +19,9 @@ app_ui <- function() {
     theme  = tema_app,
     lang   = "es",
     footer = div(
-      class = "text-center text-muted small py-2",
-      style = paste0("border-top: 1px solid ", colores$borde, ";"),
+      class = "text-center small py-2",
+      style = paste0("background:", colores$primario,
+                     "; color: white;"),
       "Manuel Spínola · ICOMVIS · Universidad Nacional · Costa Rica - Jimena Spínola Auscarriaga · Durazno · Uruguay"
     ),
 
@@ -38,9 +39,9 @@ app_ui <- function() {
       mod_enc_abiertas_ui("enc_abiertas")
     ),
 
-    # ── Módulo 3: Encuestas cerradas ──────────────────────
+    # ── Módulo 3: Preguntas cerradas ──────────────────────
     nav_panel(
-      title = "Encuestas cerradas",
+      title = "Preguntas cerradas",
       icon  = bs_icon("bar-chart-steps"),
       mod_enc_cerradas_ui("enc_cerradas")
     ),

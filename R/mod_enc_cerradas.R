@@ -1,5 +1,5 @@
 # ============================================================
-# mod_enc_cerradas.R — Encuestas cerradas
+# mod_enc_cerradas.R — Preguntas cerradas
 # StatText · StatSuite · Manuel Spínola · ICOMVIS · UNA
 #
 # Análisis: escala Likert (perfil de respuesta, diverging bars),
@@ -30,7 +30,7 @@ mod_enc_cerradas_ui <- function(id) {
       class = "py-3 px-2",
       h4(
         bs_icon("bar-chart-steps", class = "me-2"),
-        "Encuestas cerradas",
+        "Preguntas cerradas",
         style = paste0("color:", colores$primario, "; font-weight:700;")
       ),
       p(
@@ -52,41 +52,80 @@ mod_enc_cerradas_ui <- function(id) {
           layout_columns(
             col_widths = c(5, 7),
             div(
-              tags$b(bs_icon("database", class = "me-1"), "Fuente de datos"),
-              p(class = "small text-muted mt-1 mb-3",
-                "CSV o XLSX con columnas para cada ítem (valores 1–5 o 1–7)."),
-              radioButtons(
-                ns("fuente_cerradas"),
-                label = NULL,
-                choices = c(
-                  "Subir archivo (.csv, .xlsx)"  = "archivo",
-                  "Ejemplo: encuesta satisfacción" = "ejemplo"
+
+              # ── Card: Fuente de datos ──────────────────
+              card(
+                card_header(
+                  bs_icon("database", class = "me-1"), "Fuente de datos"
                 ),
-                selected = "ejemplo"
-              ),
-              conditionalPanel(
-                condition = paste0("input['", ns("fuente_cerradas"), "'] == 'archivo'"),
-                fileInput(
-                  ns("archivo_cerradas"),
-                  label = NULL,
-                  accept = c(".csv", ".xlsx"),
-                  buttonLabel = tagList(
-                    bs_icon("folder2-open", class = "me-1"), "Examinar…"),
-                  placeholder = "Sin archivo seleccionado"
+                card_body(
+                  tags$p(class = "small fw-semibold text-muted mb-1",
+                         bs_icon("bookmark", class = "me-1"), "Ejemplo"),
+                  radioButtons(
+                    ns("fuente_cerradas"),
+                    label = NULL,
+                    choices = c("Ejemplo: encuesta satisfacción" = "ejemplo"),
+                    selected = "ejemplo"
+                  ),
+
+                  tags$hr(class = "my-2"),
+                  tags$p(class = "small fw-semibold text-muted mb-1",
+                         bs_icon("upload", class = "me-1"), "Subir archivo"),
+                  radioButtons(
+                    ns("fuente_archivo_cerr"),
+                    label = NULL,
+                    choices = c("Subir archivo (.csv, .xlsx)" = "archivo"),
+                    selected = character(0)
+                  ),
+                  conditionalPanel(
+                    condition = paste0("output['", ns("fuente_cerr_es_archivo"), "']"),
+                    div(
+                      class = "p-2 mb-2",
+                      style = paste0("background:", colores$fondo,
+                                     "; border-radius:6px; font-size:12px;"),
+                      bs_icon("info-circle", class = "me-1",
+                              style = paste0("color:", colores$primario)),
+                      tags$strong("Formato esperado:"),
+                      tags$ul(
+                        class = "mb-1 mt-1 ps-3",
+                        tags$li("Una fila por participante"),
+                        tags$li("Una columna por ítem Likert (valores numéricos)"),
+                        tags$li("Columnas opcionales para agrupar (sexo, región, etc.)"),
+                        tags$li("Primera fila: nombres de columnas")
+                      )
+                    ),
+                    fileInput(
+                      ns("archivo_cerradas"),
+                      label = NULL,
+                      accept = c(".csv", ".xlsx"),
+                      buttonLabel = tagList(
+                        bs_icon("folder2-open", class = "me-1"), "Examinar…"),
+                      placeholder = "Sin archivo seleccionado"
+                    )
+                  )
                 )
               ),
-              tags$hr(),
-              uiOutput(ns("sel_items_ui")),
-              uiOutput(ns("sel_grupo_cerradas_ui")),
-              tags$hr(),
-              numericInput(ns("escala_min"), "Valor mínimo de escala:", 1, 1, 5),
-              numericInput(ns("escala_max"), "Valor máximo de escala:", 5, 2, 10),
-              tags$hr(),
-              actionButton(
-                ns("procesar_cerradas"),
-                label = tagList(bs_icon("play-fill", class = "me-1"),
-                                "Cargar datos"),
-                class = "btn btn-primary w-100"
+
+              # ── Card: Configuración ────────────────────
+              card(
+                class = "mt-3",
+                card_header(
+                  bs_icon("sliders", class = "me-1"), "Configuración"
+                ),
+                card_body(
+                  uiOutput(ns("sel_items_ui")),
+                  uiOutput(ns("sel_grupo_cerradas_ui")),
+                  tags$hr(),
+                  numericInput(ns("escala_min"), "Valor mínimo de escala:", 1, 1, 5),
+                  numericInput(ns("escala_max"), "Valor máximo de escala:", 5, 2, 10),
+                  tags$hr(),
+                  actionButton(
+                    ns("procesar_cerradas"),
+                    label = tagList(bs_icon("play-fill", class = "me-1"),
+                                    "Cargar datos"),
+                    class = "btn btn-primary w-100"
+                  )
+                )
               )
             ),
             div(
@@ -105,38 +144,57 @@ mod_enc_cerradas_ui <- function(id) {
         title = tagList(bs_icon("bar-chart-fill", class = "me-1"),
                         "Perfil Likert"),
         card_body(
-          p(class = "small text-muted mb-3",
-            "Diverging stacked bar chart: distribución de respuestas por ítem.",
-            " Los valores negativos/bajos se extienden hacia la izquierda;",
-            " los positivos/altos, hacia la derecha."),
+          div(
+            class = "alert mb-3",
+            style = paste0("background:", colores$fondo,
+                           "; border-left: 4px solid ", colores$primario, ";"),
+            tags$b(bs_icon("info-circle", class = "me-1",
+                           style = paste0("color:", colores$primario)),
+                   "Perfil de respuesta Likert"),
+            tags$p(class = "small text-muted mb-0 mt-1",
+              "Gráfico de barras divergentes: las respuestas negativas/bajas se",
+              " extienden hacia la izquierda y las positivas/altas hacia la derecha.",
+              " Permite comparar visualmente la distribución de todos los ítems.")
+          ),
           layout_columns(
             col_widths = c(3, 9),
-            card(
-              card_header(bs_icon("sliders", class = "me-1"), "Controles"),
-              card_body(
-                checkboxInput(ns("likert_porcentaje"),
-                              "Mostrar porcentajes", TRUE),
-                checkboxInput(ns("likert_ordenar"),
-                              "Ordenar por media", TRUE),
-                tags$hr(),
-                uiOutput(ns("metricas_likert_ui"))
+            div(
+              card(
+                card_header(bs_icon("sliders", class = "me-1"), "Controles"),
+                card_body(
+                  checkboxInput(ns("likert_porcentaje"),
+                                "Mostrar porcentajes", TRUE),
+                  checkboxInput(ns("likert_ordenar"),
+                                "Ordenar por media", TRUE),
+                  tags$hr(),
+                  uiOutput(ns("metricas_likert_ui"))
+                )
+              ),
+              card(
+                class = "mt-3",
+                card_header(bs_icon("lightbulb", class = "me-1"), "Interpretación"),
+                card_body(
+                  style = "white-space: normal; word-wrap: break-word;",
+                  uiOutput(ns("exp_likert_ui"))
+                )
               )
             ),
             div(
               card(
+                class = "mb-3",
                 card_header(bs_icon("bar-chart-fill", class = "me-1"),
                             "Perfil de respuesta — diverging bars"),
                 card_body(
-                  plotOutput(ns("plot_likert"), height = "420px")
+                  uiOutput(ns("plot_likert_ui"))
+                )
+              ),
+              card(
+                card_header(bs_icon("table", class = "me-1"),
+                            "Estadísticas por ítem"),
+                card_body(
+                  DTOutput(ns("tabla_stats_items"), height = "250px")
                 )
               )
-            )
-          ),
-          div(class = "mt-3",
-            card(
-              card_header(bs_icon("table", class = "me-1"),
-                          "Estadísticas por ítem"),
-              card_body(DTOutput(ns("tabla_stats_items")))
             )
           )
         )
@@ -148,34 +206,53 @@ mod_enc_cerradas_ui <- function(id) {
       nav_panel(
         title = tagList(bs_icon("grid-3x3", class = "me-1"), "Correlaciones"),
         card_body(
-          p(class = "small text-muted mb-3",
-            "Matriz de correlaciones entre ítems de la escala. Útil para",
-            " identificar dimensiones subyacentes antes del análisis factorial."),
+          div(
+            class = "alert mb-3",
+            style = paste0("background:", colores$fondo,
+                           "; border-left: 4px solid ", colores$primario, ";"),
+            tags$b(bs_icon("info-circle", class = "me-1",
+                           style = paste0("color:", colores$primario)),
+                   "Matriz de correlaciones"),
+            tags$p(class = "small text-muted mb-0 mt-1",
+              "Muestra la relación entre pares de ítems. Valores cercanos a 1",
+              " indican correlación positiva fuerte; cercanos a -1, negativa.",
+              " Útil para identificar dimensiones subyacentes.")
+          ),
           layout_columns(
             col_widths = c(3, 9),
-            card(
-              card_header(bs_icon("sliders", class = "me-1"), "Controles"),
-              card_body(
-                selectInput(
-                  ns("corr_metodo"),
-                  "Método:",
-                  choices = c(
-                    "Pearson"  = "pearson",
-                    "Spearman" = "spearman",
-                    "Kendall"  = "kendall"
-                  )
-                ),
-                checkboxInput(ns("corr_mostrar_val"),
-                              "Mostrar valores", TRUE),
-                tags$hr(),
-                uiOutput(ns("alpha_ui"))
+            div(
+              card(
+                card_header(bs_icon("sliders", class = "me-1"), "Controles"),
+                card_body(
+                  selectInput(
+                    ns("corr_metodo"),
+                    "Método:",
+                    choices = c(
+                      "Pearson"  = "pearson",
+                      "Spearman" = "spearman",
+                      "Kendall"  = "kendall"
+                    )
+                  ),
+                  checkboxInput(ns("corr_mostrar_val"),
+                                "Mostrar valores", TRUE),
+                  tags$hr(),
+                  uiOutput(ns("alpha_ui"))
+                )
+              ),
+              card(
+                class = "mt-3",
+                card_header(bs_icon("lightbulb", class = "me-1"), "Interpretación"),
+                card_body(
+                  style = "white-space: normal; word-wrap: break-word;",
+                  uiOutput(ns("exp_corr_ui"))
+                )
               )
             ),
             card(
               card_header(bs_icon("grid-3x3", class = "me-1"),
                           "Matriz de correlaciones entre ítems"),
               card_body(
-                plotOutput(ns("plot_corr_items"), height = "420px")
+                uiOutput(ns("plot_corr_ui"))
               )
             )
           )
@@ -189,34 +266,50 @@ mod_enc_cerradas_ui <- function(id) {
         title = tagList(bs_icon("diagram-3", class = "me-1"),
                         "Correspondencias"),
         card_body(
-          p(class = "small text-muted mb-3",
-            "Análisis de Correspondencias Múltiples (ACM) con FactoMineR.",
-            " Reduce la dimensionalidad y mapea ítems y grupos en un espacio bidimensional.",
-            " Útil para identificar perfiles de respuesta diferenciados."),
+          div(
+            class = "alert mb-3",
+            style = paste0("background:", colores$fondo,
+                           "; border-left: 4px solid ", colores$primario, ";"),
+            tags$b(bs_icon("info-circle", class = "me-1",
+                           style = paste0("color:", colores$primario)),
+                   "¿Qué es el ACM?"),
+            tags$p(class = "small text-muted mb-1 mt-1",
+              tags$strong("Análisis de Correspondencias Múltiples (ACM)"),
+              " es una técnica de reducción de dimensionalidad para datos categóricos.",
+              " Mapea ítems y categorías de respuesta en un espacio bidimensional."),
+            tags$p(class = "small text-muted mb-0",
+              tags$strong("Biplot:"), " muestra ítems (puntos) y grupos en el mismo plano.",
+              " Puntos cercanos indican perfiles de respuesta similares.",
+              tags$br(),
+              tags$strong("Scree plot:"), " muestra cuánta varianza explica cada dimensión.",
+              tags$br(),
+              "Los valores numéricos se discretizan automáticamente en cuartiles.")
+          ),
           layout_columns(
             col_widths = c(3, 9),
-            card(
-              card_header(bs_icon("sliders", class = "me-1"), "Controles"),
-              card_body(
-                numericInput(ns("acm_ncomp"), "Dimensiones a retener:",
-                             value = 2, min = 2, max = 5, step = 1),
-                checkboxInput(ns("acm_ellipses"),
-                              "Mostrar elipses de confianza", TRUE),
-                actionButton(
-                  ns("calcular_acm"),
-                  tagList(bs_icon("play-fill", class = "me-1"), "Calcular ACM"),
-                  class = "btn btn-primary btn-sm w-100 mt-2"
-                ),
-                div(class = "mt-2", uiOutput(ns("estado_acm_ui"))),
-                tags$hr(),
-                div(
-                  class = "p-2",
-                  style = paste0("background:", colores$fondo,
-                                 "; border-radius:6px; font-size:11px; color:",
-                                 colores$texto),
-                  bs_icon("info-circle", class = "me-1"),
-                  "ACM requiere que los ítems sean tratados como categóricos.",
-                  " Los valores numéricos se discretizan automáticamente en cuartiles."
+            div(
+              card(
+                card_header(bs_icon("sliders", class = "me-1"), "Controles"),
+                card_body(
+                  numericInput(ns("acm_ncomp"), "Dimensiones a retener:",
+                               value = 2, min = 2, max = 5, step = 1),
+                  checkboxInput(ns("acm_ellipses"),
+                                "Mostrar elipses de confianza", TRUE),
+                  tags$hr(),
+                  actionButton(
+                    ns("calcular_acm"),
+                    tagList(bs_icon("play-fill", class = "me-1"), "Calcular ACM"),
+                    class = "btn btn-primary w-100"
+                  ),
+                  div(class = "mt-2", uiOutput(ns("estado_acm_ui")))
+                )
+              ),
+              card(
+                class = "mt-3",
+                card_header(bs_icon("lightbulb", class = "me-1"), "Interpretación"),
+                card_body(
+                  style = "white-space: normal; word-wrap: break-word;",
+                  uiOutput(ns("exp_acm_ui"))
                 )
               )
             ),
@@ -225,24 +318,22 @@ mod_enc_cerradas_ui <- function(id) {
                 class = "mb-3",
                 card_header(bs_icon("diagram-3", class = "me-1"),
                             "Biplot ACM — ítems y grupos"),
-                card_body(
-                  plotOutput(ns("plot_acm"), height = "440px")
-                )
-              )
-            )
-          ),
-          div(class = "mt-3",
-            layout_columns(
-              col_widths = c(6, 6),
-              card(
-                card_header(bs_icon("bar-chart", class = "me-1"),
-                            "Varianza explicada por dimensión"),
-                card_body(plotOutput(ns("plot_acm_scree"), height = "220px"))
+                card_body(plotOutput(ns("plot_acm"), height = "440px"))
               ),
-              card(
-                card_header(bs_icon("table", class = "me-1"),
-                            "Coordenadas de categorías (Dim 1–2)"),
-                card_body(DTOutput(ns("tabla_acm_coords")))
+              layout_columns(
+                col_widths = c(6, 6),
+                card(
+                  card_header(bs_icon("bar-chart", class = "me-1"),
+                              "Varianza explicada"),
+                  card_body(plotOutput(ns("plot_acm_scree"), height = "220px"))
+                ),
+                card(
+                  card_header(bs_icon("table", class = "me-1"),
+                              "Coordenadas (Dim 1–2)"),
+                  card_body(
+                    DTOutput(ns("tabla_acm_coords"), height = "220px")
+                  )
+                )
               )
             )
           )
@@ -278,8 +369,30 @@ mod_enc_cerradas_server <- function(id) {
     ns <- session$ns
 
     # ── Datos crudos ─────────────────────────────────────
+    output$fuente_cerr_es_archivo <- reactive({
+      !is.null(input$fuente_archivo_cerr) &&
+        length(input$fuente_archivo_cerr) > 0 &&
+        input$fuente_archivo_cerr == "archivo"
+    })
+    outputOptions(output, "fuente_cerr_es_archivo", suspendWhenHidden = FALSE)
+
+    observeEvent(input$fuente_cerradas, {
+      req(input$fuente_cerradas)
+      updateRadioButtons(session, "fuente_archivo_cerr", selected = character(0))
+    })
+    observeEvent(input$fuente_archivo_cerr, {
+      req(input$fuente_archivo_cerr)
+      updateRadioButtons(session, "fuente_cerradas", selected = character(0))
+    })
+
+    fuente_cerr_activa <- reactive({
+      if (!is.null(input$fuente_archivo_cerr) &&
+          length(input$fuente_archivo_cerr) > 0 &&
+          input$fuente_archivo_cerr == "archivo") "archivo" else "ejemplo"
+    })
+
     datos_cerr <- reactive({
-      if (input$fuente_cerradas == "ejemplo") return(EJEMPLO_CERRADAS)
+      if (fuente_cerr_activa() == "ejemplo") return(EJEMPLO_CERRADAS)
       req(input$archivo_cerradas)
       ext <- tools::file_ext(input$archivo_cerradas$name)
       df  <- if (ext == "xlsx")
@@ -349,7 +462,7 @@ mod_enc_cerradas_server <- function(id) {
 
     # Inicializar automáticamente con ejemplo
     observe({
-      req(input$fuente_cerradas == "ejemplo")
+      req(fuente_cerr_activa() == "ejemplo")
       req(is.null(datos_items()))
       req(!is.null(input$items_sel))
       shinyjs::click(ns("procesar_cerradas"))
@@ -382,7 +495,8 @@ mod_enc_cerradas_server <- function(id) {
       req(datos_cerr())
       datatable(
         head(datos_cerr(), 6),
-        options  = list(dom = "t", scrollX = TRUE, pageLength = 6),
+        options  = list(dom = "tp", pageLength = 10,
+                         autoWidth = FALSE, scrollX = FALSE),
         rownames = FALSE,
         class    = "table-sm table-striped"
       )
@@ -430,6 +544,28 @@ mod_enc_cerradas_server <- function(id) {
     })
 
     # ── Plot Likert ───────────────────────────────────────
+    output$plot_likert_ui <- renderUI({
+      req(datos_items())
+      n_items <- ncol(datos_items())
+      altura  <- max(300L, n_items * 45L)
+      plotOutput(ns("plot_likert"), height = paste0(altura, "px"))
+    })
+
+    output$exp_likert_ui <- renderUI({
+      req(datos_items())
+      df   <- datos_items()
+      meds <- colMeans(df, na.rm = TRUE)
+      top  <- names(which.max(meds))
+      bot  <- names(which.min(meds))
+      mid  <- (max(df, na.rm=TRUE) + min(df, na.rm=TRUE)) / 2
+      p(paste0(
+        "El ítem con mayor puntuación media fue '", top,
+        "' (M = ", round(max(meds), 2), "). ",
+        "El ítem con menor puntuación fue '", bot,
+        "' (M = ", round(min(meds), 2), ")."
+      ))
+    })
+
     output$plot_likert <- renderPlot({
       req(datos_items())
       df   <- datos_items()
@@ -559,6 +695,30 @@ mod_enc_cerradas_server <- function(id) {
       )
     })
 
+    output$plot_corr_ui <- renderUI({
+      req(datos_items())
+      n_items <- ncol(datos_items())
+      altura  <- max(500L, n_items * 65L)
+      plotOutput(ns("plot_corr_items"), height = paste0(altura, "px"))
+    })
+
+    output$exp_corr_ui <- renderUI({
+      req(datos_items())
+      df      <- datos_items()[complete.cases(datos_items()), ]
+      cor_mat <- cor(df, method = input$corr_metodo, use = "pairwise.complete.obs")
+      diag(cor_mat) <- NA
+      max_idx <- which(cor_mat == max(cor_mat, na.rm = TRUE), arr.ind = TRUE)[1, ]
+      min_idx <- which(cor_mat == min(cor_mat, na.rm = TRUE), arr.ind = TRUE)[1, ]
+      p(paste0(
+        "La correlación más alta fue entre '", rownames(cor_mat)[max_idx[1]],
+        "' y '", colnames(cor_mat)[max_idx[2]],
+        "' (r = ", round(max(cor_mat, na.rm = TRUE), 2), "). ",
+        "La más baja entre '", rownames(cor_mat)[min_idx[1]],
+        "' y '", colnames(cor_mat)[min_idx[2]],
+        "' (r = ", round(min(cor_mat, na.rm = TRUE), 2), ")."
+      ))
+    })
+
     output$plot_corr_items <- renderPlot({
       req(datos_items())
       df      <- datos_items()[complete.cases(datos_items()), ]
@@ -586,9 +746,10 @@ mod_enc_cerradas_server <- function(id) {
           name     = "r"
         ) +
         ggplot2::labs(x = NULL, y = NULL) +
-        ggplot2::theme_minimal(base_size = 12) +
+        ggplot2::theme_minimal(base_size = 14) +
         ggplot2::theme(
-          axis.text.x     = ggplot2::element_text(angle = 45, hjust = 1),
+          axis.text.x     = ggplot2::element_text(angle = 45, hjust = 1, size = 12),
+          axis.text.y     = ggplot2::element_text(size = 12),
           panel.grid      = ggplot2::element_blank(),
           legend.position = "right"
         )
@@ -596,9 +757,9 @@ mod_enc_cerradas_server <- function(id) {
       if (input$corr_mostrar_val) {
         p <- p + ggplot2::geom_label(
           ggplot2::aes(label = round(corr, 2)),
-          size      = 3,
-          fill      = "white",
-          color     = colores$texto,
+          size       = 4,
+          fill       = "white",
+          color      = colores$texto,
           label.size = 0
         )
       }
@@ -737,6 +898,21 @@ mod_enc_cerradas_server <- function(id) {
         ggplot2::theme(panel.grid.minor = ggplot2::element_blank())
     })
 
+    output$exp_acm_ui <- renderUI({
+      req(modelo_acm())
+      res <- modelo_acm()
+      eig <- res$eig
+      dim1_pct <- round(eig[1, 2], 1)
+      dim2_pct <- round(eig[2, 2], 1)
+      p(paste0(
+        "Las dos primeras dimensiones explican el ",
+        round(dim1_pct + dim2_pct, 1),
+        "% de la varianza total (Dim 1: ", dim1_pct,
+        "%, Dim 2: ", dim2_pct, "%). ",
+        "Puntos cercanos en el biplot indican perfiles de respuesta similares."
+      ))
+    })
+
     output$tabla_acm_coords <- renderDT({
       req(modelo_acm())
       acm   <- modelo_acm()
@@ -746,7 +922,8 @@ mod_enc_cerradas_server <- function(id) {
       coords <- coords[, c("Categoría", "Dim 1", "Dim 2")]
       datatable(
         coords,
-        options  = list(pageLength = 10, dom = "tp"),
+        options  = list(pageLength = 10, dom = "tp",
+                         autoWidth = FALSE, scrollX = FALSE),
         rownames = FALSE,
         class    = "table-sm table-striped"
       )
@@ -757,7 +934,7 @@ mod_enc_cerradas_server <- function(id) {
       items_str <- paste0(
         "c('", paste(input$items_sel %||% "item1", collapse = "', '"), "')"
       )
-      encabezado_script("Encuestas cerradas — Likert y ACM") |>
+      encabezado_script("Preguntas cerradas — Likert y ACM") |>
         paste0(
           "# -- Paquetes ------------------------------------------------\n",
           "library(FactoMineR)\n",
